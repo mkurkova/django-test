@@ -2,5 +2,7 @@
 
 {% block content %}
         <h1>Страница приложения tasks</h1>
-        <a href="{% url 'tasks:projects_list' %}">Список проектов</a>
+        <p><a href="{% url 'tasks:projects_list' %}">Список проектов</a></p>
+        <p><a href="{% url 'quality_control:index' %}">Контроль качества</a></p>
+
 {% endblock %}
