@@ -1,93 +1,147 @@
 from django.http import HttpResponse
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.shortcuts import get_object_or_404, render, redirect
 from .models import BugReport, FeatureRequest
 from django import forms
 from django.views import View
-from django.views.generic import ListView, DetailView
-
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from .forms import BugReportForm, FeatureRequestForm
+from .models import Project, Task
 
 def index(request):
-    another_page_url = reverse('quality_control:bug_list')
-    another_page_url_2 = reverse('quality_control:feature_list')
-    html = f"<h1>Контроль качества</h1><p><a href='{another_page_url}'>Списиок всех багов</a></p><p><a href='{another_page_url_2}'>Запросы на улучшение</a></p>"
-    return HttpResponse(html)
-
-def bug_list(request):
-    bugs = BugReport.objects.all()
-    bugs_html = '<h1>Список отчетов об ошибке</h1><ul>'
-    for bug in bugs:
-        bugs_html += f"<li>{bug.name}</li>"
-    bugs_html += "</ul>"
-    return HttpResponse(bugs_html)
-
-def feature_list(request):
-    features = FeatureRequest.objects.all()
-    featurerequests_html = '<h1>Список запросов на улучшение</h1><ul>'
-    for featurerequest in bugreports:
-        featurerequests_html += f"<li>{featurerequest.name}</li>"
-    featurerequests_html += "</ul>"
-    return HttpResponse(featurerequests_html)
-
-def bug_detail(request, bug_id):
-    bugreport = get_object_or_404(BugReport, id=bug_id)
-    bugs = bugreport.tasks.all()
-    response_html = f'<h1>Детали бага {{ bugreport.id }}</h1>'
-    return HttpResponse(response_html)
-
-def feature_id_detail(request, bug_id, feature_id):
-    bugreport = get_object_or_404(BugReport, id=bug_id)
-    featurerequest = get_object_or_404(FeatureRequest, id=feature_id, bug_id=bug_id)
-    response_html = f'<h1>Детали улучшения {{ featurerequest.id }}</h1>'
-    return HttpResponse(response_html)
+    return render(request, 'quality_control/index.html')
 
 class IndexView(View):
     def get(self, request, *args, **kwargs):
-        bugs_url = reverse('quality_control:bug_list')
-        features_url = reverse('quality_control:feature_list')
-        html = f"<h1>Контроль качества</h1><p><a href='{bugs_url}'>Списиок всех багов</a></p><p><a href='{features_url}'>Запросы на улучшение</a></p>"
-        return HttpResponse(html)
+        return render(request, 'quality_control/index.html')
+
+def bug_list(request):
+    bugreports = BugReport.objects.all()
+    return render(request, 'quality_control/bug_list.html', {'bug_list': bugreports})
 
 class BugReportsListView(ListView):
     model = BugReport
+    template_name = 'quality_control/bug_list.html'
+    context_object_name = 'bug_list'
 
-    def get(self, request, *args, **kwargs):
-        bugs = self.get_queryset()
-        bugs_html = '<h1>Список отчетов об ошибке</h1><ul>'
-        # for bugreport in bugreports:
-        #     bugreports_html += f'<li><a href="{bugreport.id}/">{bugreport.name}</a></li>'
-        # bugreports_html += '</ul>'
-        return HttpResponse(bugs_html)
+def feature_list(request):
+    featurerequests = FeatureRequest.objects.all()
+    return render(request, 'quality_control/feature_list.html', {'feature_list': featurerequests})
+
+class FeatureRequestsListView(ListView):
+    model = FeatureRequest
+    template_name = 'quality_control/feature_list.html'
+    context_object_name = 'feature_list'
+
+def bug_detail(request, bug_id):
+    bugreport = get_object_or_404(BugReport, id=bug_id)
+    return render(request, 'quality_control/bug_detail.html', {'bugreport': bugreport})
 
 class BugReportDetailView(DetailView):
     model = BugReport
     pk_url_kwarg = 'bug_id'
+    template_name = 'quality_control/bug_detail.html'
+    context_object_name = 'bugreport'
 
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        bugreport = self.object
-        featurerequests = bugreport.featurerequests.all()
-        response_html = f'<h1>Детали бага {{ bugreport.id }}</h1>'
-        return HttpResponse(response_html)
-
-class FeatureRequestsListView(ListView):
-    model = FeatureRequest
-
-    def get(self, request, *args, **kwargs):
-        features = self.get_queryset()
-        featurerequestss_html = '<h1>Список запросов на улучшение</h1><ul>'
-        for featurerequest in features:
-            featurerequestss_html += f'<li><a href="{featurerequest.id}/">{featurerequest.name}</a></li>'
-        featurerequestss_html += '</ul>'
-        return HttpResponse(featurerequestss_html)
+def feature_id_detail(request, bug_id, feature_id):
+    featurerequest = get_object_or_404(FeatureRequest, id=feature_id, bug_id=bug_id)
+    return render(request, 'quality_control/feature_detail.html', {'featurerequest': featurerequest})
 
 class FeatureRequestDetailView(DetailView):
     model = FeatureRequest
-    pk_url_kwarg = 'feature_id'
+    pk_url_kwarg = 'feature_id_detail'
+    template_name = 'quality_control/feature_detail.html'
+    # context_object_name = 'featurerequest'
 
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        featurerequest = self.object
-        featurerequests = bugreport.featurerequests.all()
-        response_html = f'<h1>Детали улучшения {{ featurerequest.id }}</h1>'
-        return HttpResponse(response_html)
+
+def create_bug(request):
+    if request.method == 'POST':
+        form = BugReportForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('quality_control:bug_list')
+    else:
+        form = ProjectBugReportFormForm()
+    return render(request, 'quality_control/bug_report_form.html', {'form': form})
+
+def create_feature(request):
+    if request.method == 'POST':
+        form = FeatureRequestForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('quality_control:feature_list')
+    else:
+        form = FeatureRequestForm()
+    return render(request, 'quality_control/feature_request_form.html', {'form': form})
+
+class BugReportCreateView(CreateView):
+    model = BugReport
+    form_class = BugReportForm
+    template_name = 'quality_control/bug_report_form.html'
+    success_url = reverse_lazy('quality_control:bug_list')
+
+
+class FeatureRequestCreateView(CreateView):
+    model = FeatureRequest
+    form_class = FeatureRequestForm
+    template_name = 'quality_control/feature_request_form.html'
+    success_url = reverse_lazy('quality_control:feature_list')
+
+def update_bug(request, bug_id):
+    bug = get_object_or_404(BugReport, pk=bug_id)
+    if request.method == 'POST':
+        form = BugReportForm(request.POST, instance=bug)
+        if form.is_valid():
+            form.save()
+            return redirect('quality_control:bug_detail', bug_id=bug.id)
+    else:
+        form = BugReportForm(instance=bug)
+    return render(request, 'quality_control/bug_update.html', {'form': form, 'bug': bug})
+
+def update_feature(request, bug_id, feature_id):
+    feature = get_object_or_404(FeatureRequest, pk=feature_id)
+    if request.method == 'POST':
+        form = FeatureRequestForm(request.POST, instance=feature)
+        if form.is_valid():
+            form.save()
+            return redirect('quality_control:feature_detail', bug_id=bug_id, feature_id=feature.id)
+    else:
+        form = FeatureRequestForm(instance=feature)
+    return render(request, 'quality_control/feature_update.html', {'form': form, 'feature': feature})
+
+class BugReportUpdateView(UpdateView):
+    model = BugReport
+    form_class = BugReportForm
+    template_name = 'quality_control/bug_update.html'
+    pk_url_kwarg = 'bug_id'
+    success_url = reverse_lazy('quality_control:bug_list')
+
+class FeatureRequestUpdateView(UpdateView):
+    model = FeatureRequest
+    form_class = FeatureRequestForm
+    template_name = 'quality_control/feature_update.html'
+    pk_url_kwarg = 'feature_id'
+    success_url = reverse_lazy('quality_control:feature_list')
+
+
+def delete_bug(request, bug_id):
+    bug = get_object_or_404(BugReport, pk=bug_id)
+    bug.delete()
+    return redirect('quality_control:bug_list')
+
+def delete_task(requestd, feature_id):
+    feature = get_object_or_404(FeatureRequest, pk=feature_id)
+    feature.delete()
+    return redirect('quality_control:feature_list')
+
+class BugReportDeleteView(DeleteView):
+    model = BugReport
+    pk_url_kwarg = 'bug_id'
+    success_url = reverse_lazy('quality_control:bug_list')
+    template_name = 'quality_control/bug_confirm_delete.html'
+
+class FeatureRequestDeleteView(DeleteView):
+    model = FeatureRequest
+    pk_url_kwarg = 'feature_id'
+    success_url = reverse_lazy('quality_control:feature_list')
+    template_name = 'quality_control/feature_confirm_delete.html'
