@@ -76,7 +76,7 @@ def update_project(request, project_id):
         form = ProjectForm(request.POST, instance=project)
         if form.is_valid():
             form.save()
-            return redirect('tasks:project_detail', project_id=project_id)
+            return redirect('tasks:project_detail', project_id=project.id)
     else:
         form = ProjectForm(instance=project)
     return render(request, 'tasks/project_update.html', {'form': form, 'project': project})
@@ -87,7 +87,7 @@ def update_task(request, project_id, task_id):
         form = TaskForm(request.POST, instance=task)
         if form.is_valid():
             form.save()
-            return redirect('tasks:task_detail', project_id=project_id, task_id=task_id)
+            return redirect('tasks:task_detail', project_id=project_id, task_id=task.id)
     else:
         form = TaskForm(instance=task)
     return render(request, 'tasks/task_update.html', {'form': form, 'task': task})
