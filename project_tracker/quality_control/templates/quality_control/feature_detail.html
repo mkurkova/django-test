@@ -3,9 +3,10 @@
 {% block content %}
         <h1>Детали улучшения {{ featurerequest.id }}: {{ featurerequest.title }}</h1>
         <p>{{ featurerequest.description }}</p>
-        <p>Статус бага: {{ featurerequest.status }}</p>
-        <p>Связанный проект:<a href="../../../tasks/projects/{{ featurerequest.project.id }}">{{ featurerequest.project }}</a></p>
-        <p>Связанная задача:<a href="../../../tasks/projects/{{ featurerequest.project.id }}/tasks/{{ featurerequest.task.id }}">{{ featurerequest.task }}</a></p>
+        <p>Статус: {{ featurerequest.status }}</p>
+        <p>Приоритет: {{ featurerequest.priority }}</p>
+        <p>Связанный проект: <a href="../../../tasks/projects/{{ featurerequest.project.id }}">{{ featurerequest.project }}</a></p>
+        <p>Связанная задача: <a href="../../../tasks/projects/{{ featurerequest.project.id }}/tasks/{{ featurerequest.task.id }}">{{ featurerequest.task }}</a></p>
 
         <p><a href="{% url 'quality_control:update_feature' featurerequest.id %}">Изменить отчёт об ошибке</a></p>
         <p><a href="{% url 'quality_control:delete_feature' featurerequest.id %}"onclick="return confirm('Вы уверены, что хотите удалить этот отчёт об ошибке?');">Удалить отчёт об ошибке</a></p>
