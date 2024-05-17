@@ -39,4 +39,6 @@ class Task(models.Model):
         default='New',          #устанавливает значение по умолчанию для статуса
     )
 
+    def __str__(self):
+        return self.name
 
